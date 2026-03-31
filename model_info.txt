@@ -1,0 +1,9 @@
+This project uses a Retrieval-Augmented Generation (RAG) approach.
+
+Text embeddings are generated using a pre-trained sentence transformer model (all-MiniLM-L6-v2).
+FAISS is used as the vector database for similarity search.
+A language model API(Groq) is used to generate answers based on retrieved context.
+
+No custom training was performed.
+
+
