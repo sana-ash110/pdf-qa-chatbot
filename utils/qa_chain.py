@@ -1,33 +1,9 @@
-"""
-qa_chain.py
------------
-RAG chain: Groq LLM + VectorStore retrieval.
-
-Flow for every question:
-    1. VectorStore.search()  →  top-k relevant text chunks + images
-    2. Build context string from chunks
-    3. Send [system prompt + context + question] to Groq
-    4. Return answer + source citations
-
-Stateful: keeps conversation history so follow-up questions work.
-
-Usage:
-    from qa_chain import QAChain
-    chain = QAChain(store)
-    result = chain.ask("What are the main skills listed?")
-    print(result["answer"])
-    print(result["sources"])
-"""
-
 from __future__ import annotations
 
 import os
 from dotenv import load_dotenv
 from groq import Groq
 
-# NOTE: No sys.path manipulation here.
-# qa_chain.py lives inside utils/ alongside vector_store.py and embeddings.py,
-# so sibling imports work directly. sys.path is set once in app.py.
 
 load_dotenv()
 
@@ -118,7 +94,7 @@ class QAChain:
         # ── No context found ──────────────────────────────────────────────────
         if not text_results:
             return {
-                "answer":  "I couldn't find relevant information in the document to answer that question.",
+                "answer":  "I couldn't find relevant information in the document to answer that question. I can only answer based on the content of the PDF.",
                 "sources": [],
                 "images":  image_results,
             }

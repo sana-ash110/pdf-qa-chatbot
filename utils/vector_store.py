@@ -1,31 +1,3 @@
-"""
-vector_store.py
----------------
-Wraps our embedding index in a FAISS vector store that LangChain can query.
-
-Why FAISS instead of the numpy dot-product search we already have?
-  - FAISS is optimised for large collections (thousands of chunks).
-  - It supports fast approximate nearest-neighbour search at scale.
-  - LangChain's retriever interface expects a vectorstore, so this is
-    the clean integration point between our pipeline and qa_chain.py.
-
-Flow:
-    build_vector_store(chunks, pages)  →  VectorStore object
-    VectorStore.search(query, k)       →  list of Result dicts
-    VectorStore.save(path)             →  saves to disk
-    VectorStore.load(path)             →  restores from disk
-
-Each Result dict:
-    {
-        "text":        str,
-        "page_number": int | None,
-        "source":      str,
-        "score":       float,          # cosine similarity (higher = better)
-        "type":        "text"|"image",
-        "chunk_id":    str | None
-    }
-"""
-
 from __future__ import annotations
 
 import os
@@ -44,17 +16,7 @@ from embeddings import (
 # ── VectorStore class ─────────────────────────────────────────────────────────
 
 class VectorStore:
-    """
-    FAISS-backed store holding embeddings + metadata for all chunks/images.
-
-    Attributes:
-        index:    The raw embedding index dict from embeddings.build_index().
-        faiss_index: The FAISS IndexFlatIP (inner product = cosine on
-                     normalised vectors).
-        metadata: List of metadata dicts, one per row in faiss_index.
-        dim:      Embedding dimension (384 for MiniLM, 512 for CLIP).
-        use_clip: Whether text was embedded with CLIP (True) or MiniLM (False).
-    """
+ 
 
     def __init__(
         self,
@@ -85,19 +47,7 @@ class VectorStore:
         filter_type: str  = "all",   # "all" | "text" | "image"
         min_score:   float = 0.0,
     ) -> list[dict]:
-        """
-        Searches the store with a text query and returns the top-k results.
-
-        Args:
-            query:       The user's question.
-            k:           Number of results to return.
-            filter_type: Return only "text", only "image", or "all".
-            min_score:   Minimum cosine similarity to include (0.0–1.0).
-                         Raise to 0.5–0.6 to filter out weak matches.
-
-        Returns:
-            List of result dicts sorted by score descending.
-        """
+ 
         # Embed the query with whichever encoder was used for the index
         if self.use_clip:
             query_vec = embed_texts_clip([query])[0].astype("float32")
@@ -187,16 +137,7 @@ class VectorStore:
     # ── LangChain-compatible retriever ────────────────────────────────────────
 
     def as_retriever(self, k: int = 5, filter_type: str = "text"):
-        """
-        Returns a simple callable that mimics LangChain's retriever interface.
-
-        Usage in qa_chain.py:
-            retriever = store.as_retriever(k=5)
-            docs = retriever("what is the main topic?")
-
-        Returns a function that takes a query string and returns a list of
-        LangChain-style Document objects.
-        """
+   
         from langchain_core.documents import Document
 
         def retrieve(query: str) -> list[Document]:
@@ -219,13 +160,7 @@ class VectorStore:
     # ── Persistence ───────────────────────────────────────────────────────────
 
     def save(self, directory: str = "vector_store") -> None:
-        """
-        Saves the FAISS index and metadata to disk.
 
-        Creates two files:
-            {directory}/faiss.index   — the FAISS binary index
-            {directory}/metadata.pkl  — the metadata list
-        """
         os.makedirs(directory, exist_ok=True)
 
         faiss.write_index(
@@ -243,15 +178,7 @@ class VectorStore:
 
     @classmethod
     def load(cls, directory: str = "vector_store") -> "VectorStore":
-        """
-        Loads a previously saved VectorStore from disk.
-
-        Args:
-            directory: Folder containing faiss.index and metadata.pkl.
-
-        Returns:
-            A ready-to-use VectorStore instance.
-        """
+    
         faiss_path    = os.path.join(directory, "faiss.index")
         metadata_path = os.path.join(directory, "metadata.pkl")
 
