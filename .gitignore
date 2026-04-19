@@ -9,3 +9,8 @@ venv/
 
 # Streamlit / cache
 .streamlit/
+
+index.pkl
+model_info.txt
+vector_store/
+*.pkl
